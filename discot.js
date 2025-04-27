@@ -11,6 +11,8 @@ import {
 	Events,
 } from 'discord.js'
 
+import parse from 'shell-quote/parse.js'
+
 import cat from './lib/cat.js'
 import { mas, error, die } from './lib/termas.js'
 import reload from './scripts/reload.js'
@@ -32,7 +34,11 @@ const reader = createInterface({
 
 reader.on('line', line =>
 {
-	const cmd = line.trim()
+	line = line.trim()
+
+	const argv = parse(line)
+	const cmd = argv[0]
+	const args = argv.slice(1)
 
 	switch (cmd) {
 	case 'exit':
