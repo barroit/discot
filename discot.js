@@ -3,19 +3,25 @@
  * Copyright 2025 Jiamu Sun <barroit@linux.com>
  */
 
-import { createInterface } from 'node:readline'
+import { readdirSync } from 'node:fs'
+import path from 'node:path'
 import { env, exit, pid, stdin, stdout } from 'node:process'
+import { createInterface } from 'node:readline'
 
 import {
 	Client,
 	Events,
+	REST,
 } from 'discord.js'
 
 import parse from 'shell-quote/parse.js'
 
 import cat from './lib/cat.js'
 import { mas, error, die } from './lib/termas.js'
+import deasync, { deasync_import } from './lib/deasync.js'
+
 import reload from './scripts/reload.js'
+import install from './scripts/install.js'
 
 const token_path = `${env.PWD}/TOKEN`
 const token = cat(token_path)
@@ -23,8 +29,22 @@ const token = cat(token_path)
 const discot = new Client({ intents: 0 })
 let user
 
+const http = new REST()
+const http_sync = {
+	get:    deasync(http.get.bind(http)),
+	post:   deasync(http.post.bind(http)),
+	put:    deasync(http.put.bind(http)),
+	delete: deasync(http.delete.bind(http)),
+}
+
+http.setToken(token)
+
+const cmds = new Map()
+const cmd_dir = path.join(env.PWD, 'commands')
+const cmd_files = readdirSync(cmd_dir)
+
 export default discot
-export { user }
+export { http, http_sync, cmds }
 
 const reader = createInterface({
 	input: stdin,
@@ -49,12 +69,16 @@ reader.on('line', line =>
 		break
 
 	case 'reload':
-		reload()
 		reader.close()
+		reload()
 		return
 
 	case 'clear':
 		console.clear()
+		break
+
+	case 'install':
+		install(...args)
 		break
 
 	default:
@@ -66,6 +90,22 @@ reader.on('line', line =>
 
 discot.once(Events.ClientReady, client =>
 {
+	/*
+	 * Must import here. Importing earlier breaks deasync from looping
+	 * Node.js event.
+	 */
+	cmd_files.forEach(file =>
+	{
+		const src = path.join(cmd_dir, file)
+		const { res } = deasync_import(src)
+
+		cmds.set(res.meta.name, {
+			...res,
+			file,
+			path: src,
+		})
+	})
+
 	user = client.user.username
 
 	mas(`login as ${user}`)
