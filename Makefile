@@ -3,4 +3,4 @@
 .PHONY: start
 
 start:
-	@npm --silent start
+	@npm --silent start || true
