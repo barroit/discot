@@ -9,7 +9,6 @@ import { env, exit, pid, stdin, stdout } from 'node:process'
 import {
 	Client,
 	Events,
-	GatewayIntentBits,
 } from 'discord.js'
 
 import cat from './lib/cat.js'
@@ -24,25 +23,6 @@ let user
 
 export default discot
 export { user }
-
-try {
-	await discot.login(token)
-} catch (_) {
-	die(`invalid token in ${token_path}`)
-}
-
-discot.once(Events.ClientReady, client =>
-{
-	user = client.user.username
-
-	mas(`login as ${user}`)
-	reader.prompt()
-})
-
-discot.once(Events.ShardDisconnect, client =>
-{
-	mas(`logout ${user}`)
-})
 
 const reader = createInterface({
 	input: stdin,
@@ -77,3 +57,22 @@ reader.on('line', line =>
 
 	reader.prompt()
 })
+
+discot.once(Events.ClientReady, client =>
+{
+	user = client.user.username
+
+	mas(`login as ${user}`)
+	reader.prompt()
+})
+
+discot.once(Events.ShardDisconnect, client =>
+{
+	mas(`logout ${user}`)
+})
+
+try {
+	await discot.login(token)
+} catch (_) {
+	die(`invalid token in ${token_path}`)
+}
