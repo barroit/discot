@@ -1,6 +1,7 @@
 {
 	"license": "GPL-3.0-or-later",
 	"dependencies": {
+		"deasync": "^0.1.30",
 		"discord.js": "^14.19.1",
 		"shell-quote": "^1.8.2"
 	},
