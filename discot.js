@@ -72,7 +72,7 @@ reader.on('line', line =>
 		break
 
 	default:
-		mas(`unknown command: ${cmd}`)
+		error(`unknown command \`${cmd}'`)
 	}
 
 	reader.prompt()
