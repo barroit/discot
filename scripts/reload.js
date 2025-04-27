@@ -16,5 +16,4 @@ export default function reload()
 	})
 
 	discot.destroy()
-	child.on('exit', exit)
 }
