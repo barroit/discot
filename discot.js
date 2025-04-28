@@ -18,6 +18,8 @@ import { mas, warn, die } from './lib/termas.js'
 import deasync from './lib/deasync.js'
 import { term_prompt } from './lib/term.js'
 
+import { dc_warn } from './lib/dismas.js'
+
 const token_path = `${env.PWD}/TOKEN`
 
 if (!existsSync(token_path))
@@ -74,6 +76,36 @@ discot.once(Events.ClientReady, client =>
 discot.once(Events.ShardDisconnect, client =>
 {
 	mas(`logout ${user}`)
+})
+
+discot.on(Events.InteractionCreate, async ctx =>
+{
+	if (!ctx.isChatInputCommand())
+		return
+
+	const name = ctx.commandName
+	const cmd = cmds.get(name)
+
+	if (!cmd) {
+		const msg = `outdated command '${name}'`
+		const data = dc_warn(msg)
+
+		warn(msg)
+
+		if (ctx.replied || ctx.deferred)
+			return ctx.followUp(data)
+		else
+			return ctx.reply(data)
+	}
+
+	const err = await cmd.exec(ctx)
+
+	if (err) {
+		if (ctx.replied || ctx.deferred)
+			return ctx.followUp(err)
+		else
+			return ctx.reply(err)
+	}
 })
 
 try {
