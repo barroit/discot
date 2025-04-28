@@ -17,8 +17,8 @@ import cat from './lib/cat.js'
 import { mas, warn, die } from './lib/termas.js'
 import deasync from './lib/deasync.js'
 import { term_prompt } from './lib/term.js'
-
 import { dc_warn } from './lib/dismas.js'
+import { reply_user } from './lib/disutil.js'
 
 const token_path = `${env.PWD}/TOKEN`
 
@@ -87,25 +87,18 @@ discot.on(Events.InteractionCreate, async ctx =>
 	const cmd = cmds.get(name)
 
 	if (!cmd) {
-		const msg = `outdated command '${name}'`
-		const data = dc_warn(msg)
+		const str = `deprecated command '${name}'`
+		const data = dc_warn(str)
 
-		warn(msg)
-
-		if (ctx.replied || ctx.deferred)
-			return ctx.followUp(data)
-		else
-			return ctx.reply(data)
+		warn(str)
+		reply_user(ctx, data)
+		return
 	}
 
 	const err = await cmd.exec(ctx)
 
-	if (err) {
-		if (ctx.replied || ctx.deferred)
-			return ctx.followUp(err)
-		else
-			return ctx.reply(err)
-	}
+	if (err)
+		reply_user(ctx, err)
 })
 
 try {
