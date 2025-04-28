@@ -4,15 +4,16 @@
  */
 
 import {
-	PermissionFlagsBits as PermissionFlags,
-	InteractionContextType as InteractionContext,
+	PermissionFlagsBits as Permission,
+	InteractionContextType as Interaction,
 	MessageFlags,
 } from 'discord.js'
 
-import cmeta, { opt_number } from '../lib/cmeta.js'
+import confirm from '../lib/confirm.js'
 import { dc_error } from '../lib/dismas.js'
 import { fetch_channel } from '../lib/disutil.js'
 import { mas } from '../lib/termas.js'
+import cmd_meta, { opt_number } from '../lib/meta.js'
 
 /*
  * Fuck OOP. Fuck their obsession with chaining unreadable garbage and giving
@@ -23,11 +24,11 @@ const opt_max = opt_number().setName('max')
 			    .setMinValue(1)
 			    .setMaxValue(100)
 
-const meta = cmeta().setName('drop')
-		    .setDescription('drops many messages from channel')
-		    .setDefaultMemberPermissions(PermissionFlags.Administrator)
-		    .setContexts(InteractionContext.Guild)
-		    .addNumberOption(opt_max)
+const meta = cmd_meta().setName('drop')
+		       .setDescription('drops many messages from channel')
+		       .setDefaultMemberPermissions(Permission.Administrator)
+		       .setContexts(Interaction.Guild)
+		       .addNumberOption(opt_max)
 
 export { meta }
 
