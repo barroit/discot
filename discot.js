@@ -57,11 +57,11 @@ discot.once(Events.ClientReady, client =>
 	cmd_files.forEach(async file =>
 	{
 		const src = path.join(cmd_dir, file)
-		const cmd = await import(src)
+		const { exec, meta } = await import(src)
 
-		cmds.set(cmd.meta.name, {
-			exec: cmd.default,
-			meta: cmd.meta,
+		cmds.set(meta.name, {
+			exec,
+			meta,
 			file,
 			path: src,
 		})

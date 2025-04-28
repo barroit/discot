@@ -31,7 +31,7 @@ const meta = cmeta().setName('drop')
 
 export { meta }
 
-export default async function exec(ctx)
+export async function exec(ctx)
 {
 	const channel = await fetch_channel(ctx)
 	const max = ctx.options.getNumber('max') ?? 100
