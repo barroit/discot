@@ -12,7 +12,6 @@ import {
 import confirm from '../lib/confirm.js'
 import { dc_error } from '../lib/dismas.js'
 import { fetch_channel } from '../lib/disutil.js'
-import { mas } from '../lib/termas.js'
 import cmd_meta, { opt_number } from '../lib/meta.js'
 
 /*
@@ -37,13 +36,15 @@ export async function exec(ctx)
 	const channel = await fetch_channel(ctx)
 	const max = ctx.options.getNumber('max') ?? 100
 
-	const reply = ctx.deferReply({ flags: MessageFlags.Ephemeral })
+	const prompt = 'Use this only if you know what you are doing.'
+	const abort = await confirm(ctx, prompt)
+
+	if (abort)
+		return
 
 	try {
 		await channel.bulkDelete(max, true)
 	} catch (err) {
 		return dc_error('Bulk delete messages failed', err)
 	}
-
-	reply.then(() => ctx.deleteReply())
 }
