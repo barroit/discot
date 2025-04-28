@@ -5,8 +5,7 @@
 
 import { existsSync, readdirSync } from 'node:fs'
 import path from 'node:path'
-import { env, exit, pid, stdin, stdout } from 'node:process'
-import { createInterface } from 'node:readline'
+import { env } from 'node:process'
 
 import {
 	Client,
@@ -14,14 +13,10 @@ import {
 	REST,
 } from 'discord.js'
 
-import parse from 'shell-quote/parse.js'
-
 import cat from './lib/cat.js'
-import { mas, error, die } from './lib/termas.js'
+import { mas, warn, die } from './lib/termas.js'
 import deasync, { deasync_import } from './lib/deasync.js'
-
-import reload from './scripts/reload.js'
-import install from './scripts/install.js'
+import { term_prompt } from './lib/term.js'
 
 const token_path = `${env.PWD}/TOKEN`
 
@@ -45,65 +40,8 @@ http.setToken(token)
 
 const cmds = new Map()
 
-let __prompting = false
-const prompt_str = `${pid}> `
-const prompt_size = prompt_str.length
-const reader = createInterface({
-	input:  stdin,
-	output: stdout,
-	prompt: prompt_str,
-})
-
-function prompt()
-{
-	reader.prompt()
-	__prompting = true
-}
-
-function prompting()
-{
-	return __prompting
-}
-
 export default discot
-export { http, http_sync, cmds, prompt, prompting, prompt_size }
-
-reader.on('line', line =>
-{
-	__prompting = false
-	line = line.trim()
-
-	const argv = parse(line)
-	const cmd = argv[0]
-	const args = argv.slice(1)
-
-	switch (cmd) {
-	case 'exit':
-		exit(0)
-
-	case 'whoami':
-		console.log(discot.user.tag)
-		break
-
-	case 'reload':
-		reader.close()
-		reload()
-		return
-
-	case 'clear':
-		console.clear()
-		break
-
-	case 'install':
-		install(...args)
-		break
-
-	default:
-		error(`unknown command \`${cmd}'`)
-	}
-
-	prompt()
-})
+export { http, http_sync, cmds }
 
 discot.once(Events.ClientReady, client =>
 {
@@ -130,7 +68,7 @@ discot.once(Events.ClientReady, client =>
 	user = client.user.username
 
 	mas(`login as ${user}`)
-	prompt()
+	term_prompt()
 })
 
 discot.once(Events.ShardDisconnect, client =>
