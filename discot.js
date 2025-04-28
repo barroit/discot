@@ -15,7 +15,7 @@ import {
 
 import cat from './lib/cat.js'
 import { mas, warn, die } from './lib/termas.js'
-import deasync, { deasync_import } from './lib/deasync.js'
+import deasync from './lib/deasync.js'
 import { term_prompt } from './lib/term.js'
 
 const token_path = `${env.PWD}/TOKEN`
@@ -52,14 +52,14 @@ discot.once(Events.ClientReady, client =>
 	 * Must import here. Importing earlier breaks deasync from looping
 	 * Node.js event.
 	 */
-	cmd_files.forEach(file =>
+	cmd_files.forEach(async file =>
 	{
 		const src = path.join(cmd_dir, file)
-		const { res } = deasync_import(src)
+		const cmd = await import(src)
 
-		cmds.set(res.meta.name, {
-			exec: res.default,
-			meta: res.meta,
+		cmds.set(cmd.meta.name, {
+			exec: cmd.default,
+			meta: cmd.meta,
 			file,
 			path: src,
 		})
