@@ -44,20 +44,33 @@ const http_sync = {
 http.setToken(token)
 
 const cmds = new Map()
-const cmd_dir = path.join(env.PWD, 'commands')
-const cmd_files = readdirSync(cmd_dir)
+
+let __prompting = false
+const prompt_str = `${pid}> `
+const prompt_size = prompt_str.length
+const reader = createInterface({
+	input:  stdin,
+	output: stdout,
+	prompt: prompt_str,
+})
+
+function prompt()
+{
+	reader.prompt()
+	__prompting = true
+}
+
+function prompting()
+{
+	return __prompting
+}
 
 export default discot
-export { http, http_sync, cmds }
-
-const reader = createInterface({
-	input: stdin,
-	output: stdout,
-	prompt: `${pid}> `,
-})
+export { http, http_sync, cmds, prompt, prompting, prompt_size }
 
 reader.on('line', line =>
 {
+	__prompting = false
 	line = line.trim()
 
 	const argv = parse(line)
@@ -89,11 +102,14 @@ reader.on('line', line =>
 		error(`unknown command \`${cmd}'`)
 	}
 
-	reader.prompt()
+	prompt()
 })
 
 discot.once(Events.ClientReady, client =>
 {
+	const cmd_dir = path.join(env.PWD, 'commands')
+	const cmd_files = readdirSync(cmd_dir)
+
 	/*
 	 * Must import here. Importing earlier breaks deasync from looping
 	 * Node.js event.
@@ -114,7 +130,7 @@ discot.once(Events.ClientReady, client =>
 	user = client.user.username
 
 	mas(`login as ${user}`)
-	reader.prompt()
+	prompt()
 })
 
 discot.once(Events.ShardDisconnect, client =>
