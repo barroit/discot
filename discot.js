@@ -104,7 +104,8 @@ discot.once(Events.ClientReady, client =>
 		const { res } = deasync_import(src)
 
 		cmds.set(res.meta.name, {
-			...res,
+			exec: res.default,
+			meta: res.meta,
 			file,
 			path: src,
 		})
