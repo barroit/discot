@@ -3,7 +3,7 @@
  * Copyright 2025 Jiamu Sun <barroit@linux.com>
  */
 
-import { readdirSync } from 'node:fs'
+import { existsSync, readdirSync } from 'node:fs'
 import path from 'node:path'
 import { env, exit, pid, stdin, stdout } from 'node:process'
 import { createInterface } from 'node:readline'
@@ -24,6 +24,10 @@ import reload from './scripts/reload.js'
 import install from './scripts/install.js'
 
 const token_path = `${env.PWD}/TOKEN`
+
+if (!existsSync(token_path))
+	die(`missing token file '${token_path}'`)
+
 const token = cat(token_path)
 
 const discot = new Client({ intents: 0 })
