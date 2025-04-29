@@ -62,7 +62,7 @@ async function drop_cmd(name)
 
 	const guilds = discot.guilds.cache
 
-	const guild_tasks = guilds.map(async g => await g.commands.fetch())
+	const guild_tasks = guilds.map(g => g.commands.fetch())
 	const global_cmd = await discot.application.commands.fetch()
 
 	if (name.pattern == '*')
