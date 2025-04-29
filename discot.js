@@ -59,6 +59,9 @@ discot.once(Events.ClientReady, client =>
 		const src = path.join(cmd_dir, file)
 		const { exec, meta } = await import(src)
 
+		if (!exec || !meta)
+			return
+
 		cmds.set(meta.name, {
 			exec,
 			meta,
