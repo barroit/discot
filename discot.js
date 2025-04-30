@@ -57,7 +57,7 @@ discot.once(Events.ClientReady, client =>
 	cmd_files.forEach(async file =>
 	{
 		const src = path.join(cmd_dir, file)
-		const { exec, meta } = await import(src)
+		const { exec, meta, sandbox_only } = await import(src)
 
 		if (!exec || !meta)
 			return
@@ -67,6 +67,7 @@ discot.once(Events.ClientReady, client =>
 			meta,
 			file,
 			path: src,
+			sandbox_only,
 		})
 	})
 

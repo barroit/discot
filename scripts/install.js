@@ -3,43 +3,78 @@
  * Copyright 2025 Jiamu Sun <barroit@linux.com>
  */
 
+import { existsSync } from 'node:fs'
+import { env } from 'node:process'
+
 import { Routes } from 'discord.js'
 
 import discot, { http_sync, cmds } from '../discot.js'
+import cat from '../lib/cat.js'
 import { error } from '../lib/termas.js'
 
-export default function install(str)
+const sandbox_id_path = `${env.PWD}/SANDBOX`
+let sandbox_id
+
+if (existsSync(sandbox_id_path))
+	sandbox_id = cat(sandbox_id_path)
+
+export default function install(name)
 {
-	if (!str)
+	if (!name)
 		return error('missing file name')
 
-	const data = []
-	let files = Array.from(cmds)
-			 .map(([ _, cmd ]) => [ cmd.file, cmd.meta ])
+	let files = Array.from(cmds.values())
 
-	if (str.pattern != '*') {
-		files = files.filter(([ name ]) => name.startsWith(str))
+	if (name.pattern != '*') {
+		files = files.filter(({ file }) => file.startsWith(name))
 
 		switch (files.length) {
 		case 1:
 			break
 		case 0:
-			return error(`pattern \`${str}' matches nothing`)
+			return error(`pattern \`${name}' matches nothing`)
 		default:
-			const ln = files.map(([ name ]) => `\n  ${name}`)
+			const ln = files.map(([ str ]) => `\n  ${str}`)
 					.join('')
 
-			return error(`ambiguous name \`${str}', could be${ln}`)
+			return error(`ambiguous name \`${name}', could be${ln}`)
 		}
 	}
 
-	files.forEach(([ _, meta ]) => data.push(meta.toJSON()))
+	const global = []
+	const sandbox = []
 
-	const url = Routes.applicationCommands(discot.user.id)
-	const { err, res } = http_sync.put(url, {
-		body: data
+	files.forEach(({ meta, sandbox_only }) =>
+	{
+		const json = meta.toJSON()
+
+		if (!sandbox_only)
+			global.push(json)
+		else
+			sandbox.push(json)
 	})
 
-	if (err)
-		error(`${res.name}: ${res.rawError.message}`)
+	let url
+	let ret = {}
+	const uid = discot.user.id
+
+	if (global.length) {
+		console.log(global)
+		url = Routes.applicationCommands(uid)
+		ret = http_sync.put(url, { body: global })
+	}
+
+	if (ret.err)
+		return error(`${ret.res.name}: ${ret.res.rawError.message}`)
+
+	if (sandbox.length) {
+		if (!sandbox_id)
+			die(`missing sandbox id file '${sandbox_id_path}'`)
+
+		url = Routes.applicationGuildCommands(uid, sandbox_id)
+		ret = http_sync.put(url, { body: sandbox })
+	}
+
+	if (ret.err)
+		return error(`${ret.res.name}: ${ret.res.rawError.message}`)
 }
