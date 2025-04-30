@@ -50,10 +50,6 @@ discot.once(Events.ClientReady, client =>
 	const cmd_dir = path.join(env.PWD, 'commands')
 	const cmd_files = readdirSync(cmd_dir)
 
-	/*
-	 * Must import here. Importing earlier breaks deasync from looping
-	 * Node.js event.
-	 */
 	cmd_files.forEach(async file =>
 	{
 		const src = path.join(cmd_dir, file)
