@@ -73,7 +73,7 @@ export async function exec(ctx)
 			str = lorem.generateParagraphs(1)
 		}
 
-		const task = channel.send(str).catch(() => {})
+		const task = channel.send(str)
 
 		tasks.push(task)
 		await sleep(300)
