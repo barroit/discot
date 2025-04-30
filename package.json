@@ -3,6 +3,7 @@
 	"dependencies": {
 		"deasync": "^0.1.30",
 		"discord.js": "^14.19.1",
+		"lorem-ipsum": "^2.0.8",
 		"shell-quote": "^1.8.2"
 	},
 	"scripts": {
