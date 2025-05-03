@@ -13,7 +13,7 @@ import { LoremIpsum } from "lorem-ipsum"
 import confirm from '../lib/confirm.js'
 import { dc_error } from '../lib/dismas.js'
 import { fetch_channel } from '../lib/disutil.js'
-import cmd_meta, { opt_number } from '../lib/meta.js'
+import { cmd_meta, opt_number } from '../lib/meta.js'
 import sleep from '../lib/sleep.js'
 
 const WORD      = 0
