@@ -10,7 +10,7 @@ import { Routes } from 'discord.js'
 
 import discot, { http_sync, cmds } from '../discot.js'
 import cat from '../lib/cat.js'
-import { error } from '../lib/termas.js'
+import { error, die } from '../lib/termas.js'
 
 const sandbox_id_path = `${env.PWD}/SANDBOX`
 let sandbox_id
