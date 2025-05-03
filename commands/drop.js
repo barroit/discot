@@ -36,20 +36,11 @@ async function drop_old(channel, max)
 {
 	const msg_map = await channel.messages.fetch({ limit: max })
 	const msg_arr = msg_map.values()
-	const tasks = []
 
 	for (const msg of msg_arr) {
-		const task = msg.delete()
-
-		tasks.push(task)
+		await msg.delete().catch(() => {})
 		await sleep(300)
 	}
-
-	const results = await Promise.allSettled(tasks)
-	const err = results.filter(({ status }) => status == 'rejected')
-
-	if (err.length)
-		return dc_warn('Delete old message messages failed')
 }
 
 export async function exec(ctx)
