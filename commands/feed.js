@@ -11,8 +11,7 @@ import {
 import { LoremIpsum } from "lorem-ipsum"
 
 import confirm from '../lib/confirm.js'
-import { dc_error } from '../lib/dismas.js'
-import { reply_user } from '../lib/disutil.js'
+import { dc_warn, dc_error } from '../lib/dismas.js'
 import { cmd_meta, opt_number } from '../lib/meta.js'
 import sleep from '../lib/sleep.js'
 
@@ -70,12 +69,10 @@ export async function exec(ctx)
 			str = lorem.generateParagraphs(1)
 		}
 
-		try {
-			await ctx.channel.send(str)
-		} catch (_) {
-			reply_user(ctx, `Failed to send '${str}' to channel`)
-		}
+		const errmsg = `failed to send '${str}' to channel`
 
+		await ctx.channel.send(str)
+				 .then(err => ctx.reply(dc_warn(errmsg, err)))
 		await sleep(300)
 	}
 

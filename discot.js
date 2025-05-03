@@ -19,7 +19,6 @@ import { mas, warn, die } from './lib/termas.js'
 import deasync from './lib/deasync.js'
 import { term_prompt } from './lib/term.js'
 import { dc_warn } from './lib/dismas.js'
-import { reply_user } from './lib/disutil.js'
 
 const token_path = `${env.PWD}/TOKEN`
 
@@ -82,7 +81,7 @@ discot.once(Events.ShardDisconnect, client =>
 	mas(`logout ${user}`)
 })
 
-discot.on(Events.InteractionCreate, async ctx =>
+discot.on(Events.InteractionCreate, ctx =>
 {
 	if (!ctx.isChatInputCommand())
 		return
@@ -95,14 +94,10 @@ discot.on(Events.InteractionCreate, async ctx =>
 		const data = dc_warn(str)
 
 		warn(str)
-		reply_user(ctx, data)
-		return
+		return ctx.reply(data)
 	}
 
-	const err = await cmd.exec(ctx)
-
-	if (err)
-		reply_user(ctx, err)
+	return cmd.exec(ctx)
 })
 
 try {

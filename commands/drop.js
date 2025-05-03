@@ -48,16 +48,15 @@ export async function exec(ctx)
 
 	const prompt = 'Use this only if you know what you are doing.'
 	const abort = await confirm(ctx, prompt)
+	let dropped
 
 	if (abort)
 		return
 
-	let dropped
-
 	try {
 		dropped = await ctx.channel.bulkDelete(max, true)
 	} catch (err) {
-		return dc_error('Bulk delete messages failed', err)
+		return ctx.reply(dc_error('Bulk delete messages failed', err))
 	}
 
 	const remain = max - dropped.size
