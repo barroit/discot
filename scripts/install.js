@@ -59,7 +59,6 @@ export default function install(name)
 	const uid = discot.user.id
 
 	if (global.length) {
-		console.log(global)
 		url = Routes.applicationCommands(uid)
 		ret = http_sync.put(url, { body: global })
 	}
