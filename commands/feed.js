@@ -12,6 +12,7 @@ import { LoremIpsum } from "lorem-ipsum"
 
 import confirm from '../lib/confirm.js'
 import { dc_error } from '../lib/dismas.js'
+import { reply_user } from '../lib/disutil.js'
 import { cmd_meta, opt_number } from '../lib/meta.js'
 import sleep from '../lib/sleep.js'
 
@@ -50,8 +51,6 @@ const lorem = new LoremIpsum({
 
 export async function exec(ctx)
 {
-	const tasks = []
-
 	const max = ctx.options.getNumber('max') ?? 10
 	const type = ctx.options.getNumber('type') ?? 1
 
@@ -71,12 +70,14 @@ export async function exec(ctx)
 			str = lorem.generateParagraphs(1)
 		}
 
-		const task = ctx.channel.send(str)
+		try {
+			await ctx.channel.send(str)
+		} catch (_) {
+			reply_user(ctx, `Failed to send '${str}' to channel`)
+		}
 
-		tasks.push(task)
 		await sleep(300)
 	}
 
-	await Promise.allSettled(tasks)
 	ctx.deleteReply()
 }
