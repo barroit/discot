@@ -12,7 +12,6 @@ import { LoremIpsum } from "lorem-ipsum"
 
 import confirm from '../lib/confirm.js'
 import { dc_error } from '../lib/dismas.js'
-import { fetch_channel } from '../lib/disutil.js'
 import { cmd_meta, opt_number } from '../lib/meta.js'
 import sleep from '../lib/sleep.js'
 
@@ -51,7 +50,6 @@ const lorem = new LoremIpsum({
 
 export async function exec(ctx)
 {
-	const channel = await fetch_channel(ctx)
 	const tasks = []
 
 	const max = ctx.options.getNumber('max') ?? 10
@@ -73,7 +71,7 @@ export async function exec(ctx)
 			str = lorem.generateParagraphs(1)
 		}
 
-		const task = channel.send(str)
+		const task = ctx.channel.send(str)
 
 		tasks.push(task)
 		await sleep(300)

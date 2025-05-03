@@ -10,6 +10,7 @@ import { env } from 'node:process'
 import {
 	Client,
 	Events,
+	GatewayIntentBits,
 	REST,
 } from 'discord.js'
 
@@ -27,7 +28,10 @@ if (!existsSync(token_path))
 
 const token = cat(token_path)
 
-const discot = new Client({ intents: 0 })
+const discot = new Client({
+	intents: GatewayIntentBits.Guilds |
+		 GatewayIntentBits.GuildVoiceStates,
+})
 let user
 
 const http = new REST()

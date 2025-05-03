@@ -11,7 +11,6 @@ import {
 
 import confirm from '../lib/confirm.js'
 import { dc_error, dc_warn } from '../lib/dismas.js'
-import { fetch_channel } from '../lib/disutil.js'
 import { cmd_meta, opt_number } from '../lib/meta.js'
 import sleep from '../lib/sleep.js'
 
@@ -45,7 +44,6 @@ async function drop_old(channel, max)
 
 export async function exec(ctx)
 {
-	const channel = await fetch_channel(ctx)
 	const max = ctx.options.getNumber('max') ?? 100
 
 	const prompt = 'Use this only if you know what you are doing.'
@@ -57,7 +55,7 @@ export async function exec(ctx)
 	let dropped
 
 	try {
-		dropped = await channel.bulkDelete(max, true)
+		dropped = await ctx.channel.bulkDelete(max, true)
 	} catch (err) {
 		return dc_error('Bulk delete messages failed', err)
 	}
@@ -65,5 +63,5 @@ export async function exec(ctx)
 	const remain = max - dropped.size
 
 	if (remain)
-		return drop_old(channel, remain)
+		return drop_old(ctx.channel, remain)
 }
