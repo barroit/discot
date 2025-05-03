@@ -33,7 +33,7 @@ const opt_type = opt_number()
 	{ name: 'word', value: WORD },
 	{ name: 'sentence', value: SENTENCE },
 	{ name: 'paragraph', value: PARAGRAPH },
-);
+)
 
 export const meta = cmd_meta()
 .setName('feed')
