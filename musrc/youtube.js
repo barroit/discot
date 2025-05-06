@@ -356,7 +356,7 @@ function show_playlist(ctx)
 	flex_reply(ctx, dc_note(lines))
 }
 
-async function work_once(ctx)
+async function work_once(ctx, ref)
 {
 	const fetchlist = FETCHLIST(ctx)
 	const option = OPTION(ctx)
@@ -369,6 +369,10 @@ async function work_once(ctx)
 		if (fetchlist.head == -1) {
 			player.mutex.unlock()
 			await player.barrier.wait()
+
+			if (player.worker != ref)
+				return
+
 			await player.mutex.lock()
 		}
 
@@ -495,14 +499,16 @@ export async function youtube(ctx, url, opts)
 
 	clearTimeout(current.player.task)
 	current.player.removeAllListeners(PlayerState.Idle)
-	current.player.on(PlayerState.Idle, () => work_once(ctx))
-	current.player.mutex.unlock()
 
-	if (initial)
-		work_once(ctx)
+	current.player.worker = () => work_once(ctx, current.player.worker)
+	current.player.on(PlayerState.Idle, current.player.worker)
+
+	current.player.mutex.unlock()
 
 	if (current.player.state.status != PlayerState.Idle)
 		current.player.stop(true)
+
+	work_once(ctx, current.player.worker)
 
 	switch (type) {
 	case URL_WATCH:
