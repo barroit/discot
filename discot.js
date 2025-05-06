@@ -3,8 +3,8 @@
  * Copyright 2025 Jiamu Sun <barroit@linux.com>
  */
 
-import { existsSync, readdirSync } from 'node:fs'
-import path from 'node:path'
+import { existsSync, readdirSync, mkdir } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { env } from 'node:process'
 
 import {
@@ -15,10 +15,11 @@ import {
 } from 'discord.js'
 
 import cat from './lib/cat.js'
-import { mas, warn, die } from './lib/termas.js'
 import deasync from './lib/deasync.js'
-import { term_prompt } from './lib/term.js'
 import { dc_warn } from './lib/dismas.js'
+import features from './lib/feature.js'
+import { term_prompt } from './lib/term.js'
+import { mas, warn, die } from './lib/termas.js'
 
 const token_path = `${env.PWD}/TOKEN`
 
@@ -45,17 +46,29 @@ http.setToken(token)
 
 const cmds = new Map()
 
+const tmp_root = tmpdir()
+const tmp_dir = `${tmp_root}/barroit-discot`
+
+features['tmp-dir'] = 0
+mkdir(tmp_dir, { recursive: true }, err =>
+{
+	if (!err)
+		features['tmp-dir'] = 1
+	else
+		warn(`failed to madir '${tmp_dir}'`)
+})
+
 export default discot
-export { http, http_sync, cmds }
+export { http, http_sync, cmds, tmp_dir }
 
 discot.once(Events.ClientReady, client =>
 {
-	const cmd_dir = path.join(env.PWD, 'commands')
+	const cmd_dir = `${env.PWD}/commands`
 	const cmd_files = readdirSync(cmd_dir)
 
 	cmd_files.forEach(async file =>
 	{
-		const src = path.join(cmd_dir, file)
+		const src = `${cmd_dir}/${file}`
 		const { exec, meta, sandbox_only } = await import(src)
 
 		if (!exec || !meta)
