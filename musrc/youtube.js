@@ -118,7 +118,7 @@ function watch_id(str)
 	const url = new URL(str)
 
 	if (url.hostname == 'youtu.be')
-		return pathname.splice(1)
+		return url.pathname.slice(1)
 	else
 		return url.searchParams.get('v')
 }
@@ -195,8 +195,8 @@ async function fetch_audio_slow(url)
 {
 	const cmd = `yt-dlp --format bestaudio \
 			    --output '${tmp_dir}/%(id)s' \
+			    --print after_move:'%(id)s\t%(duration)s\t%(title)s' \
 			    --print after_move:filename \
-			    --print '%(id)s\t%(duration)s\t%(title)s' \
 			    '${url}'`
 	const { stdout, stderr } = await exec(cmd).catch(err => err)
 
@@ -211,7 +211,7 @@ async function fetch_audio_slow(url)
 	const dst = `${tmp_dir}/${name}`
 
 	renameSync(src, dst)
-	return { stdout: dst }
+	return { stdout: name }
 }
 
 async function fetch_audio(url, id)
