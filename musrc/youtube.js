@@ -151,6 +151,17 @@ async function flex_reply(ctx, data)
 	else
 		ret = ctx.followUp(data).then(msg => reply.message = msg)
 
+	ret = ret.catch(err =>
+	{
+		if (err.rawError.code != 10008)
+			return
+
+		/*
+		 * Some dumbass deleted our message.
+		 */
+		ctx.channel.send(data).then(msg => reply.message = msg)
+	})
+
 	reply.count++
 	return ret
 }
