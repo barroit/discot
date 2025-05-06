@@ -1,10 +1,14 @@
 {
 	"license": "GPL-3.0-or-later",
 	"dependencies": {
+		"@discordjs/opus": "^0.10.0",
+		"@discordjs/voice": "^0.18.0",
 		"deasync": "^0.1.30",
 		"discord.js": "^14.19.1",
 		"lorem-ipsum": "^2.0.8",
-		"shell-quote": "^1.8.2"
+		"shell-quote": "^1.8.2",
+		"sodium": "^3.0.2",
+		"string-width": "^7.2.0"
 	},
 	"scripts": {
 		"start": "node discot.js"

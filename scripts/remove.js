@@ -47,8 +47,8 @@ async function drop_cmd_spec(guild_tasks, global_cmds, name)
 		return await Promise.allSettled(drop_task)
 
 	const res = await Promise.allSettled(guild_tasks)
-	drop_task = res.flatMap(r => r.value.filter(pred).map(drop_guild_cmd))
 
+	drop_task = res.flatMap(r => r.value.filter(pred).map(drop_guild_cmd))
 	if (drop_task.length)
 		return await Promise.allSettled(drop_task)
 
