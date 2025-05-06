@@ -3,7 +3,11 @@
  * Copyright 2025 Jiamu Sun <barroit@linux.com>
  */
 
-import { createReadStream, readdirSync } from 'node:fs'
+import {
+	createReadStream,
+	readdirSync,
+	renameSync,
+} from 'node:fs'
 
 import {
 	AudioPlayerStatus as PlayerState,
@@ -22,7 +26,7 @@ import strwidth from 'string-width';
 import { exec as __exec } from 'node:child_process'
 import { promisify } from 'node:util'
 
-import { tmp_dir } from '../discot.js'
+import discot, { tmp_dir } from '../discot.js'
 import barrier from '../lib/barrier.js'
 import { dc_note, dc_warn, dc_error } from '../lib/dismas.js'
 import features from '../lib/feature.js'
@@ -31,8 +35,8 @@ import mutex from '../lib/mutex.js'
 
 const exec = promisify(__exec)
 
-const DEFAULT_FETCH_RANGE = 10
-const DEFAULT_DISPLAY_RANGE = 10
+const DEFAULT_FETCH_RANGE = 100
+const DEFAULT_DISPLAY_RANGE = 5
 
 const URL_UNKNOWN  = -1
 const URL_PLAYLIST = 0
@@ -189,19 +193,25 @@ function join_channel(ctx)
 
 async function fetch_audio_slow(url)
 {
-	const fmt = '%(id)s\t%(duration)s\t%(title)s'
 	const cmd = `yt-dlp --format bestaudio \
-			    --output '${tmp_dir}/${fmt}' \
-			    --print after_move:'${fmt}' \
+			    --output '${tmp_dir}/%(id)s' \
+			    --print after_move:filename \
+			    --print '%(id)s\t%(duration)s\t%(title)s' \
 			    '${url}'`
 	const { stdout, stderr } = await exec(cmd).catch(err => err)
 
-	if (!stderr)
-		return { stdout: stdout.trim() }
+	if (stderr) {
+		const seg = stderr.trim().split(': ')
 
-	const seg = stderr.trim().split(': ')
+		return { stderr: seg[seg.length - 1] }
+	}
 
-	return { stderr: seg[seg.length - 1] }
+	const [ __name, src ] = stdout.trim().split('\n')
+	const name = __name.replaceAll('/', '∕')
+	const dst = `${tmp_dir}/${name}`
+
+	renameSync(src, dst)
+	return { stdout: dst }
 }
 
 async function fetch_audio(url, id)
@@ -339,7 +349,7 @@ function show_playlist(ctx)
 		if (playing)
 			return `> **${prefix} - ${title}**`
 		else
-			return `**​ ​ ​ ${prefix} - ${title}**`
+			return `**\u200b \u200b \u200b ${prefix} - ${title}**`
 	}).join('\n\n')
 
 	lines = `## Playlist [${fetchlist.title}](${fetchlist.url})\n​ \n${lines}`
@@ -400,7 +410,7 @@ async function start_watch(ctx)
 
 	if (typeof ret === 'string')
 		return ctx.followUp(dc_error(`failed to fetch '${url}'; ${ret}`))
-	
+
 	const { title, duration } = ret
 
 	fetchlist.queue = [{
