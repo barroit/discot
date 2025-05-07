@@ -11,7 +11,6 @@ import {
 
 import {
 	AudioPlayerStatus as PlayerState,
-	createAudioPlayer,
 	createAudioResource,
 	demuxProbe,
 	entersState,
@@ -27,11 +26,17 @@ import { exec as __exec } from 'node:child_process'
 import { promisify } from 'node:util'
 
 import discot, { tmp_dir } from '../discot.js'
-import barrier from '../lib/barrier.js'
 import { dc_note, dc_warn, dc_error } from '../lib/dismas.js'
 import features from '../lib/feature.js'
 import { cmd_sub, opt_number, opt_string } from '../lib/meta.js'
-import mutex from '../lib/mutex.js'
+import {
+	CURRENT,
+	FETCHLIST,
+	OPTION,
+	PLAYER,
+	PLAYLIST,
+	REPLY,
+} from '../lib/muctx.js'
 
 const exec = promisify(__exec)
 
@@ -63,36 +68,6 @@ export const meta = cmd_sub()
 .addStringOption(opt_url)
 .addNumberOption(opt_range)
 .addNumberOption(opt_display)
-
-function CURRENT(ctx)
-{
-	return ctx.guild.current
-}
-
-function PLAYLIST(ctx)
-{
-	return CURRENT(ctx).playlist
-}
-
-function FETCHLIST(ctx)
-{
-	return PLAYLIST(ctx).fetch
-}
-
-function PLAYER(ctx)
-{
-	return CURRENT(ctx).player
-}
-
-function REPLY(ctx)
-{
-	return CURRENT(ctx).reply
-}
-
-function OPTION(ctx)
-{
-	return CURRENT(ctx).opts
-}
 
 function url_type(str)
 {
@@ -459,16 +434,20 @@ async function start_playlist(ctx)
 	player.barrier.signal()
 }
 
-export async function youtube(ctx, url, opts)
+export async function youtube(ctx, url)
 {
+	const option = OPTION(ctx)
+	const player = PLAYER(ctx)
+	const playlist = PLAYLIST(ctx)
+	const reply = REPLY(ctx)
+
 	if (!features['yt-dlp'] ||
 	    !features['ffmpeg'] ||
 	    !features['tmp-dir'])
 		return ctx.followUp(dc_error("source 'youtube' is unavailable"))
 
 	const type = url_type(url)
-	let current = CURRENT(ctx)
-	let initial = 0
+	const opts = ctx.options
 
 	const range = opts.getNumber('range') ?? DEFAULT_FETCH_RANGE
 	const display = opts.getNumber('display') ?? DEFAULT_DISPLAY_RANGE
@@ -476,50 +455,32 @@ export async function youtube(ctx, url, opts)
 	if (type == URL_UNKNOWN)
 		return ctx.followUp(dc_error(`unknown URL '${url}'`))
 
-	if (!current) {
-		initial = 1
+	await player.mutex.lock()
 
-		ctx.guild.current = {}
-		current = CURRENT(ctx)
+	option.range = range
+	option.display = display
 
-		current.reply = {}
+	reply.count = 0
 
-		current.playlist = {}
-		current.playlist.fetch = {}
+	playlist.queue = []
+	playlist.next = 0
 
-		current.player = createAudioPlayer()
-		current.player.barrier = new barrier()
-		current.player.mutex = new mutex()
+	playlist.fetch.title = undefined
+	playlist.fetch.url = url
+	playlist.fetch.head = -1
 
-		current.opts = {}
-	}
+	clearTimeout(player.task)
+	player.removeAllListeners(PlayerState.Idle)
 
-	await current.player.mutex.lock()
+	player.worker = () => work_once(ctx, player.worker)
+	player.on(PlayerState.Idle, player.worker)
 
-	current.opts.range = range
-	current.opts.display = display
+	player.mutex.unlock()
 
-	current.reply.count = 0
+	if (player.state.status != PlayerState.Idle)
+		player.stop(true)
 
-	current.playlist.queue = []
-	current.playlist.next = 0
-
-	current.playlist.fetch.title = undefined
-	current.playlist.fetch.url = url
-	current.playlist.fetch.head = -1
-
-	clearTimeout(current.player.task)
-	current.player.removeAllListeners(PlayerState.Idle)
-
-	current.player.worker = () => work_once(ctx, current.player.worker)
-	current.player.on(PlayerState.Idle, current.player.worker)
-
-	current.player.mutex.unlock()
-
-	if (current.player.state.status != PlayerState.Idle)
-		current.player.stop(true)
-
-	work_once(ctx, current.player.worker)
+	work_once(ctx, player.worker)
 
 	switch (type) {
 	case URL_WATCH:
@@ -528,3 +489,4 @@ export async function youtube(ctx, url, opts)
 		return start_playlist(ctx)
 	}
 }
+export { youtube as exec }
