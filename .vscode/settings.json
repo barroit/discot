@@ -6,6 +6,7 @@
 		}
 	},
 	"search.exclude": {
-		"**/LICENSES": true
+		"**/LICENSES": true,
+		"**/package*.json": true
 	}
 }

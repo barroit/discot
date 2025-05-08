@@ -11,7 +11,13 @@
 		"string-width": "^7.2.0"
 	},
 	"scripts": {
+		"addon-build": "cd addon && cmake-js --log-level error compile",
+		"addon-clean": "cd addon && cmake-js --log-level error clean",
+		"prestart": "npm run addon-build 1>/dev/null",
 		"start": "node discot.js"
 	},
-	"type": "module"
+	"type": "module",
+	"binary": {
+		"napi_versions": [ 10 ]
+	}
 }
