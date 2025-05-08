@@ -3,10 +3,10 @@
  * Copyright 2025 Jiamu Sun <barroit@linux.com>
  */
 
-#include "funcdef.h"
 #include "calc.h"
+#include "compiler.h"
+#include "funcdef.h"
 #include "iter.h"
-#include "stringify.h"
 
 #define REGISTER(x) { .func = x, .name = STRINGIFY(x) }
 

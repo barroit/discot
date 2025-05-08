@@ -3,10 +3,14 @@
  * Copyright 2025 Jiamu Sun <barroit@linux.com>
  */
 
-#ifndef STRINGIFY_H
-#define STRINGIFY_H
+#ifndef COMPILER_H
+#define COMPILER_H
+
+#include <assert.h>
+
+#define BUG_ON(x) assert(!(x))
 
 #define __STRINGIFY(x) #x
 #define STRINGIFY(x)   __STRINGIFY(x)
 
-#endif /* STRINGIFY_H */
+#endif /* COMPILER_H */
