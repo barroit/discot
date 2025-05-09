@@ -579,13 +579,13 @@ export async function skip(ctx)
 	const max = playlist.queue.length - 1
 
 	if (option.next_count == 1 || !max)
-		return stop()
+		return stop(ctx)
 
 	await player.mutex.lock()
 
 	if (playlist.next + 1 == playlist.queue.length) {
 		player.mutex.unlock()
-		return stop()
+		return stop(ctx)
 	}
 
 	const len = playlist.next
