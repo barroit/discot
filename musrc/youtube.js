@@ -604,6 +604,33 @@ export async function skip(ctx)
 	player.stop(true)
 }
 
+export async function back(ctx)
+{
+	const fetchlist = FETCHLIST(ctx)
+	const option = OPTION(ctx)
+	const player = PLAYER(ctx)
+	const playlist = PLAYLIST(ctx)
+
+	if (player.state.status == PlayerState.Idle)
+		return
+
+	await player.mutex.lock()
+
+	if (playlist.next <= option.back_count || !fetchlist.title) {
+		playlist.next = 0
+	} else {
+		playlist.next -= option.back_count
+
+		if (option.back_count > 1 ||
+		    player.src.playbackDuration <= 5_000)
+			playlist.next -= 1
+	}
+
+	player.mutex.unlock()
+
+	player.stop(true)
+}
+
 export async function shuffle(ctx)
 {
 	const fetchlist = FETCHLIST(ctx)
