@@ -381,6 +381,9 @@ async function work_once(ctx, ref)
 	const player = PLAYER(ctx)
 	const playlist = PLAYLIST(ctx)
 
+	if (!player.worker)
+		return
+
 	await player.mutex.lock()
 
 	if (playlist.next == playlist.queue.length) {
@@ -532,6 +535,35 @@ export async function youtube(ctx, url)
 	}
 }
 export { youtube as exec }
+
+export async function stop(ctx)
+{
+	const current = CURRENT(ctx)
+	const player = PLAYER(ctx)
+	const playlist = PLAYLIST(ctx)
+	const fetchlist = FETCHLIST(ctx)
+
+	if (!current.conn || current.conn.state.status == ConnState.Destroyed)
+		return
+
+	await player.mutex.lock()
+
+	playlist.queue = []
+	playlist.next = 0
+	playlist.fetch.head = -1
+
+	player.worker = undefined
+	clearTimeout(player.task)
+
+	fetchlist.title = undefined
+
+	await player.mutex.unlock()
+
+	player.removeAllListeners(PlayerState.Idle)
+	player.stop(true)
+
+	current.conn.disconnect()
+}
 
 export async function shuffle(ctx)
 {
