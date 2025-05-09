@@ -264,6 +264,7 @@ async function fetch_playlist(ctx, url, head, range)
 		fetchlist.head = -1
 }
 
+/* FIXME: Breaks exit() */
 async function play_audio(ctx, file, duration)
 {
 	const player = PLAYER(ctx)
@@ -420,6 +421,7 @@ async function work_once(ctx, ref)
 
 	playlist.next++
 
+	/* FIXME: Breaks exit() */
 	player.task = setTimeout(() => fetch_audio(url, id),
 				 (duration / 8 * 7) * 1000)
 	play_audio(ctx, path, duration)
@@ -563,6 +565,41 @@ export async function stop(ctx)
 	player.stop(true)
 
 	current.conn.disconnect()
+}
+
+export async function skip(ctx)
+{
+	const option = OPTION(ctx)
+	const player = PLAYER(ctx)
+	const playlist = PLAYLIST(ctx)
+
+	if (player.state.status == PlayerState.Idle)
+		return
+
+	const max = playlist.queue.length - 1
+
+	if (option.skip_count == 1 || !max)
+		return stop()
+
+	await player.mutex.lock()
+
+	if (playlist.next + 1 == playlist.queue.length) {
+		player.mutex.unlock()
+		return stop()
+	}
+
+	const len = playlist.next
+	const remain = max - len
+	let skip = option.skip_count
+
+	if (skip > remain)
+		skip = max
+
+	playlist.next += skip - 1
+
+	player.mutex.unlock()
+
+	player.stop(true)
 }
 
 export async function shuffle(ctx)
