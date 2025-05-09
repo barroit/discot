@@ -258,10 +258,11 @@ async function fetch_playlist(ctx, url, head, range)
 
 	fetchlist.title = meta.title
 	fetchlist.queue = queue
+	fetchlist.next = end
 	fetchlist.head = end
 
-	if (!queue.length)
-		fetchlist.head = -1
+	if (queue.length < range)
+		fetchlist.next = -1
 }
 
 /* FIXME: Breaks exit() */
@@ -285,17 +286,17 @@ async function update_playlist(ctx)
 	const reply = REPLY(ctx)
 
 	const err = await fetch_playlist(ctx, fetchlist.url,
-					 fetchlist.head, option.range)
+					 fetchlist.next, option.range)
 
 	if (!err)
 		return
 
-	const start = fetchlist.head + 1
+	const start = fetchlist.next + 1
 	const end = start + option.range - 1
 	const msg = `failed to update playlist '${url}' from ${start} to ${end}; ${err}\n\nstopping fetch of remaining songs`
 
 	reply.message.reply(data, dc_warn(msg))
-	fetchlist.head = -1
+	fetchlist.next = -1
 }
 
 function show_watch(ctx)
@@ -387,8 +388,22 @@ async function work_once(ctx, ref)
 
 	await player.mutex.lock()
 
+	if (playlist.next && player.loop &&
+	    (option.loop_song || !fetchlist.title))
+		playlist.next -= 1
+
 	if (playlist.next == playlist.queue.length) {
-		if (fetchlist.head == -1) {
+		/*
+		 * Seperate these two branches so second one handles
+		 * update_playlist() error.
+		 */
+		if (fetchlist.next == -1 &&
+		    player.loop && !option.loop_song && fetchlist.title) {
+			fetchlist.next = 0
+			update_playlist(ctx)
+		}
+
+		if (fetchlist.next == -1) {
 			player.mutex.unlock()
 			await player.barrier.wait()
 
@@ -411,7 +426,7 @@ async function work_once(ctx, ref)
 		player.shuffle = 0
 	}
 
-	if (fetchlist.head != -1 &&
+	if (fetchlist.next != -1 &&
 	    playlist.queue == fetchlist.queue &&
 	    playlist.next >= ~~(playlist.queue.length / 3) * 2)
 		update_playlist(ctx)
@@ -419,7 +434,7 @@ async function work_once(ctx, ref)
 	const { url, id } = playlist.queue[playlist.next]
 	const { duration, title, path } = await fetch_audio(url, id)
 
-	playlist.next++
+	playlist.next += 1
 
 	/* FIXME: Breaks exit() */
 	player.task = setTimeout(() => fetch_audio(url, id),
@@ -512,11 +527,12 @@ export async function youtube(ctx, url)
 
 	playlist.fetch.title = undefined
 	playlist.fetch.url = url
-	playlist.fetch.head = -1
+	playlist.fetch.next = -1
 
 	clearTimeout(player.task)
 	player.removeAllListeners(PlayerState.Idle)
 	player.shuffle = 0
+	player.loop = 0
 
 	player.worker = () => work_once(ctx, player.worker)
 	player.on(PlayerState.Idle, player.worker)
@@ -660,4 +676,20 @@ export async function shuffle(ctx)
 
 	if (player.shuffle && player.state.status != PlayerState.Idle)
 		player.stop(true)
+}
+
+export async function loop(ctx, on)
+{
+	const player = PLAYER(ctx)
+
+	if (on && player.loop)
+		return
+	else if (!on && !player.loop)
+		return
+
+	await player.mutex.lock()
+
+	player.loop = on
+
+	player.mutex.unlock()
 }
