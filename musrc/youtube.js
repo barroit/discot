@@ -578,7 +578,9 @@ export async function skip(ctx)
 
 	const max = playlist.queue.length - 1
 
-	if (option.next_count == 1 || !max)
+	if (option.next_count == 1)
+		return player.stop(true)
+	else if (!max)
 		return stop(ctx)
 
 	await player.mutex.lock()
