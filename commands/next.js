@@ -16,7 +16,7 @@ const opt_count = opt_number()
 .setMinValue(1)
 
 export const meta = cmd_meta()
-.setName('skip')
+.setName('next')
 .setDescription('skip current track')
 .setContexts(InteractionContextType.Guild)
 .addNumberOption(opt_count)
@@ -32,7 +32,7 @@ export async function exec(ctx)
 
 	const option = OPTION(ctx)
 
-	option.skip_count = ctx.options.getNumber('count') ?? 1
+	option.next_count = ctx.options.getNumber('count') ?? 1
 
 	return current.handler.skip(ctx)
 }
