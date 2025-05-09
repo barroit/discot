@@ -631,6 +631,11 @@ export async function back(ctx)
 	player.stop(true)
 }
 
+export async function pause(ctx)
+{
+	PLAYER(ctx).pause(true)
+}
+
 export async function shuffle(ctx)
 {
 	const fetchlist = FETCHLIST(ctx)
