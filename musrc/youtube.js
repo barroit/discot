@@ -37,6 +37,7 @@ import {
 	PLAYLIST,
 	REPLY,
 } from '../lib/muctx.js'
+import { arr_shuffle, arr_move } from '../lib/array.js'
 
 const exec = promisify(__exec)
 
@@ -263,7 +264,7 @@ async function fetch_playlist(ctx, url, head, range)
 		fetchlist.head = -1
 }
 
-async function play_audio(ctx, file)
+async function play_audio(ctx, file, duration)
 {
 	const player = PLAYER(ctx)
 
@@ -271,6 +272,8 @@ async function play_audio(ctx, file)
 	const { stream, type } = await demuxProbe(__stream)
 	const src = createAudioResource(stream, { inputType: type })
 
+	src.duration = duration
+	player.src = src
 	player.play(src)
 }
 
@@ -342,6 +345,35 @@ function show_playlist(ctx)
 	flex_reply(ctx, dc_note(lines))
 }
 
+function shuffle_all(ctx)
+{
+	const playlist = PLAYLIST(ctx)
+
+	arr_shuffle(playlist.queue, 0, playlist.queue.length)
+	playlist.next = 0
+}
+
+function shuffle_partial(ctx)
+{
+	const playlist = PLAYLIST(ctx)
+	const player = PLAYER(ctx)
+
+	const ts = ~~(player.src.playbackDuration / 3 * 2 / 1000)
+	let off = playlist.next - 1
+
+	if (ts > player.src.duration)
+		off += 1
+
+	const len = playlist.queue.length - off
+
+	arr_shuffle(playlist.queue, off, len)
+	if (off)
+		arr_move(playlist.queue, off, 0, len)
+
+	playlist.next = 0
+	playlist.queue.length -= off
+}
+
 async function work_once(ctx, ref)
 {
 	const fetchlist = FETCHLIST(ctx)
@@ -367,6 +399,14 @@ async function work_once(ctx, ref)
 		playlist.next = 0
 	}
 
+	if (player.shuffle) {
+		if (option.shuffle_all)
+			shuffle_all(ctx)
+		else
+			shuffle_partial(ctx)
+		player.shuffle = 0
+	}
+
 	if (fetchlist.head != -1 &&
 	    playlist.queue == fetchlist.queue &&
 	    playlist.next >= ~~(playlist.queue.length / 3) * 2)
@@ -379,7 +419,7 @@ async function work_once(ctx, ref)
 
 	player.task = setTimeout(() => fetch_audio(url, id),
 				 (duration / 8 * 7) * 1000)
-	play_audio(ctx, path)
+	play_audio(ctx, path, duration)
 
 	if (fetchlist.title)
 		show_playlist(ctx)
@@ -471,6 +511,7 @@ export async function youtube(ctx, url)
 
 	clearTimeout(player.task)
 	player.removeAllListeners(PlayerState.Idle)
+	player.shuffle = 0
 
 	player.worker = () => work_once(ctx, player.worker)
 	player.on(PlayerState.Idle, player.worker)
@@ -491,3 +532,24 @@ export async function youtube(ctx, url)
 	}
 }
 export { youtube as exec }
+
+export async function shuffle(ctx)
+{
+	const fetchlist = FETCHLIST(ctx)
+	const option = OPTION(ctx)
+	const player = PLAYER(ctx)
+	const playlist = PLAYLIST(ctx)
+
+	if (!fetchlist.title)
+		return
+
+	await player.mutex.lock()
+
+	if (playlist.next != playlist.queue.length || option.shuffle_all)
+		player.shuffle = 1
+
+	player.mutex.unlock()
+
+	if (player.shuffle && player.state.status != PlayerState.Idle)
+		player.stop(true)
+}
