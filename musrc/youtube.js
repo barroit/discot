@@ -480,6 +480,7 @@ export async function youtube(ctx, url)
 	if (player.state.status != PlayerState.Idle)
 		player.stop(true)
 
+	player.barrier.broadcast()
 	work_once(ctx, player.worker)
 
 	switch (type) {
