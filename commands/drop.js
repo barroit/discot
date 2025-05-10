@@ -13,6 +13,7 @@ import confirm from '../lib/confirm.js'
 import { dc_error, dc_warn } from '../lib/dismas.js'
 import { cmd_meta, opt_number } from '../lib/meta.js'
 import sleep from '../lib/sleep.js'
+import { mas } from '../lib/termas.js'
 
 /*
  * Fuck OOP. Fuck their obsession with chaining unreadable garbage and giving
@@ -52,6 +53,8 @@ export async function exec(ctx)
 
 	if (abort)
 		return
+
+	mas(`${ctx.user.username} (${ctx.user.id}) emits drop(max: ${max})`)
 
 	try {
 		dropped = await ctx.channel.bulkDelete(max, true)
