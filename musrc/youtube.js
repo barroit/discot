@@ -67,6 +67,10 @@ const opt_shuffle = opt_switch()
 .setName('shuffle')
 .setDescription('shuffle playlist')
 
+const opt_loop = opt_switch()
+.setName('loop')
+.setDescription('loop song or playlist')
+
 export const meta = cmd_sub()
 .setName('youtube')
 .setDescription('play music from YouTube and YouTube Music')
@@ -74,6 +78,7 @@ export const meta = cmd_sub()
 .addNumberOption(opt_range)
 .addNumberOption(opt_display)
 .addBooleanOption(opt_shuffle)
+.addBooleanOption(opt_loop)
 
 function url_type(str)
 {
@@ -517,6 +522,7 @@ export async function youtube(ctx, url)
 	const range = opts.getNumber('range') ?? DEFAULT_FETCH_RANGE
 	const display = opts.getNumber('display') ?? DEFAULT_DISPLAY_RANGE
 	const shuffle = opts.getBoolean('shuffle') ?? 0
+	const loop = opts.getBoolean('loop') ?? 0
 
 	if (type == URL_UNKNOWN)
 		return ctx.followUp(dc_error(`unknown URL '${url}'`))
@@ -538,7 +544,7 @@ export async function youtube(ctx, url)
 	clearTimeout(player.task)
 	player.removeAllListeners(PlayerState.Idle)
 	player.shuffle = shuffle
-	player.loop = 0
+	player.loop = loop
 
 	if (player.shuffle)
 		option.shuffle_all = 1
