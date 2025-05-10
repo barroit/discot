@@ -1,0 +1,27 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+
+div.tocwrapper li.toctree-l1 {
+	font-size: 1.3rem;
+	margin-left: 1rem;
+}
+
+div.tocwrapper li.toctree-l2, div.tocwrapper li.toctree-l3 {
+	list-style-type: none;
+}
+
+div.tocwrapper li.current ul {
+	margin-left: 1rem;
+}
+
+div.tocwrapper li.current > a {
+	font-weight: 600;
+}
+
+div.tocwrapper {
+	background-color: #eeeeee;
+}
+
+div.tocwrapper li.current ul {
+	background-color: #ffffff;
+}
+

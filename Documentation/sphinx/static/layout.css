@@ -1,0 +1,13 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+
+div.bodywrapper {
+	margin: 0 0 0 24rem;
+}
+
+div.footer, div.document {
+	margin: 2rem 1rem 0 1rem;
+}
+
+div.body li {
+	margin: 0.5rem;
+}
