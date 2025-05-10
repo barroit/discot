@@ -28,7 +28,7 @@ import { promisify } from 'node:util'
 import discot, { tmp_dir } from '../discot.js'
 import { dc_note, dc_warn, dc_error } from '../lib/dismas.js'
 import features from '../lib/feature.js'
-import { cmd_sub, opt_number, opt_string } from '../lib/meta.js'
+import { cmd_sub, opt_number, opt_string, opt_switch } from '../lib/meta.js'
 import {
 	CURRENT,
 	FETCHLIST,
@@ -63,12 +63,17 @@ const opt_display = opt_number()
 .setDescription('maximum playlist items to display')
 .setMinValue(1)
 
+const opt_shuffle = opt_switch()
+.setName('shuffle')
+.setDescription('shuffle playlist')
+
 export const meta = cmd_sub()
 .setName('youtube')
 .setDescription('play music from YouTube and YouTube Music')
 .addStringOption(opt_url)
 .addNumberOption(opt_range)
 .addNumberOption(opt_display)
+.addBooleanOption(opt_shuffle)
 
 function url_type(str)
 {
@@ -511,6 +516,7 @@ export async function youtube(ctx, url)
 
 	const range = opts.getNumber('range') ?? DEFAULT_FETCH_RANGE
 	const display = opts.getNumber('display') ?? DEFAULT_DISPLAY_RANGE
+	const shuffle = opts.getBoolean('shuffle') ?? 0
 
 	if (type == URL_UNKNOWN)
 		return ctx.followUp(dc_error(`unknown URL '${url}'`))
@@ -531,8 +537,11 @@ export async function youtube(ctx, url)
 
 	clearTimeout(player.task)
 	player.removeAllListeners(PlayerState.Idle)
-	player.shuffle = 0
+	player.shuffle = shuffle
 	player.loop = 0
+
+	if (player.shuffle)
+		option.shuffle_all = 1
 
 	player.worker = () => work_once(ctx, player.worker)
 	player.on(PlayerState.Idle, player.worker)
