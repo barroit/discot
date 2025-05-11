@@ -33,7 +33,7 @@ html_css_files = [
 html_theme_options = {
 	'description': version,
 	'page_width': '80rem',
-	'sidebar_width': '20rem',
+	'sidebar_width': '13rem',
 	'fixed_sidebar': 'true',
 	'font_family': 'serif',
 }
