@@ -1,5 +1,21 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 
+div.body h1 {
+	font-size: 180%;
+}
+
+div.body h2 {
+	font-size: 150%;
+}
+
+div.body h3 {
+	font-size: 130%;
+}
+
+div.body h4 {
+	font-size: 110%;
+}
+
 div.footer, div.document {
 	margin: 2rem 1rem 0 1rem;
 }
@@ -9,5 +25,5 @@ div.sphinxsidebarwrapper p.logo {
 }
 
 img.logo {
-	width: 104px;
+	width: 5rem;
 }

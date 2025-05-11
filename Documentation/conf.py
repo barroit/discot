@@ -28,7 +28,7 @@ html_logo = 'images/logo.svg'
 html_favicon = 'images/favicon.png'
 
 html_css_files = [
-	'layout.css',
+	'custom.css',
 	'toc.css',
 ]
 
