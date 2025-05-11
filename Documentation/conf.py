@@ -5,7 +5,9 @@ copyright = '%Y Jiamu Sun'
 author = 'Jiamu Sun'
 
 with open('../VERSION') as file:
-	version = file.read()
+	vernumb = file.read()
+
+	version = f"v{vernumb}"
 	release = version
 
 needs_sphinx = '8.2'
