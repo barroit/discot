@@ -10,5 +10,3 @@ This index lists devland tools. Tools are meant to run in Discot terminal.
    :maxdepth: 2
 
    install
-   reload
-   remove
