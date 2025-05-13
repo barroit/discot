@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: 0BSD
 
 name: docs
 
@@ -24,6 +24,13 @@ jobs:
       runs-on: ubuntu-24.04
       steps:
          - uses: actions/checkout@v4
+           with:
+              path: master
+
+         - uses: actions/checkout@v4
+           with:
+              repository: barroit/barroit
+              path: barroit
 
          - uses: actions/setup-python@v5
            with:
@@ -32,11 +39,11 @@ jobs:
          - run: pip install sphinx==8.2.3
 
          - run: make html
-           working-directory: ./Documentation
+           working-directory: master/Documentation
 
          - uses: actions/upload-pages-artifact@v3
            with:
-              path: ./Documentation/build/html
+              path: master/Documentation/build/html
 
    deploy:
       needs:   build
