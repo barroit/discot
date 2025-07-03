@@ -25,6 +25,7 @@ import strwidth from 'string-width';
 import { exec as __exec } from 'node:child_process'
 import { promisify } from 'node:util'
 
+import addon from '../addon/include.cjs'
 import discot, { tmp_dir } from '../discot.js'
 import { dc_note, dc_warn, dc_error } from '../lib/dismas.js'
 import features from '../lib/feature.js'
@@ -37,7 +38,9 @@ import {
 	PLAYLIST,
 	REPLY,
 } from '../lib/muctx.js'
-import { arr_shuffle, arr_move } from '../lib/array.js'
+import { arr_move } from '../lib/array.js'
+
+const { shuffle: addon_shuffle } = addon
 
 const exec = promisify(__exec)
 
@@ -361,7 +364,7 @@ function shuffle_all(ctx)
 {
 	const playlist = PLAYLIST(ctx)
 
-	arr_shuffle(playlist.queue, 0, playlist.queue.length)
+	addon_shuffle(playlist.queue, 0, playlist.queue.length)
 	playlist.next = 0
 }
 
@@ -378,7 +381,7 @@ function shuffle_partial(ctx)
 
 	const len = playlist.queue.length - off
 
-	arr_shuffle(playlist.queue, off, len)
+	addon_shuffle(playlist.queue, off, len)
 	if (off)
 		arr_move(playlist.queue, off, 0, len)
 
